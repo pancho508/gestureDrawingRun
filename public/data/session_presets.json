@@ -1,0 +1,46 @@
+[
+  {
+    "id": "preset-001",
+    "name": "Quick Warmup",
+    "intervalsSeconds": [30, 30, 30, 30, 30],
+    "defaultCategory": "figure"
+  },
+  {
+    "id": "preset-002",
+    "name": "30s x 10",
+    "intervalsSeconds": [30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+    "defaultCategory": "figure"
+  },
+  {
+    "id": "preset-003",
+    "name": "60s x 10",
+    "intervalsSeconds": [60, 60, 60, 60, 60, 60, 60, 60, 60, 60],
+    "defaultCategory": "figure"
+  },
+  {
+    "id": "preset-004",
+    "name": "120s x 10",
+    "intervalsSeconds": [
+      120, 120, 120, 120, 120, 120, 120, 120, 120, 120
+    ],
+    "defaultCategory": "figure"
+  },
+  {
+    "id": "preset-005",
+    "name": "300s x 5",
+    "intervalsSeconds": [300, 300, 300, 300, 300],
+    "defaultCategory": "figure"
+  },
+  {
+    "id": "preset-006",
+    "name": "Hands Mix",
+    "intervalsSeconds": [15, 15, 15, 20, 20, 20, 25, 25, 25, 30],
+    "defaultCategory": "hands"
+  },
+  {
+    "id": "preset-007",
+    "name": "Face Study",
+    "intervalsSeconds": [45, 45, 45, 45, 45, 60, 60, 60],
+    "defaultCategory": "faces"
+  }
+]
