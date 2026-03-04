@@ -7,10 +7,11 @@ import { createTimer } from '@/lib/timerEngine';
 
 interface SessionRunnerProps {
   queue: ImageQueueItem[];
+  sessionRunId: string | null;
   onSessionEnd: (totalSeconds: number) => void;
 }
 
-export function SessionRunner({ queue, onSessionEnd }: SessionRunnerProps) {
+export function SessionRunner({ queue, sessionRunId, onSessionEnd }: SessionRunnerProps) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
   const [remaining, setRemaining] = useState(queue[0]?.intervalSeconds || 0);

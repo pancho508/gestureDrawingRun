@@ -16,6 +16,7 @@ export default function SessionPage() {
   const router = useRouter();
   const [queue, setQueue] = useState<ImageQueueItem[]>([]);
   const [preset, setPreset] = useState<SessionPreset | null>(null);
+  const [sessionRunId, setSessionRunId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,8 +61,26 @@ export default function SessionPage() {
         }
         const builtQueue: ImageQueueItem[] = await queueRes.json();
 
+        // Start session in database
+        const sessionRes = await fetch('/api/session/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            presetId: params.presetId,
+            category: params.category,
+            tags: params.tags,
+            includeNsfw: params.includeNsfw,
+          }),
+        });
+        if (!sessionRes.ok) {
+          throw new Error('Failed to start session');
+        }
+        const sessionData = await sessionRes.json();
+        const runId = sessionData.sessionRunId;
+
         setPreset(selectedPreset);
         setQueue(builtQueue);
+        setSessionRunId(runId);
         setIsLoading(false);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load session';
@@ -73,13 +92,38 @@ export default function SessionPage() {
     initSession();
   }, [router]);
 
-  const handleSessionEnd = (totalSeconds: number) => {
-    // Store the result and navigate to results page
-    sessionStorage.setItem(
-      'sessionResult',
-      JSON.stringify({ totalSeconds, completed: true })
-    );
-    router.push('/results');
+  const handleSessionEnd = async (totalSeconds: number) => {
+    try {
+      // Finish session in database
+      if (sessionRunId) {
+        const finishRes = await fetch('/api/session/finish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionRunId,
+            totalSeconds,
+            images: queue.map((img) => ({
+              referenceImageId: img.id,
+              intervalSeconds: img.intervalSeconds,
+            })),
+          }),
+        });
+        if (!finishRes.ok) {
+          console.error('Failed to finish session');
+        }
+      }
+
+      // Store the result in sessionStorage for the results page
+      sessionStorage.setItem(
+        'sessionResult',
+        JSON.stringify({ totalSeconds, completed: true })
+      );
+      router.push('/results');
+    } catch (err) {
+      console.error('Error ending session:', err);
+      // Still navigate to results page even if DB update fails
+      router.push('/results');
+    }
   };
 
   if (isLoading) {
@@ -119,5 +163,5 @@ export default function SessionPage() {
     return null;
   }
 
-  return <SessionRunner queue={queue} onSessionEnd={handleSessionEnd} />;
+  return <SessionRunner queue={queue} sessionRunId={sessionRunId} onSessionEnd={handleSessionEnd} />;
 }

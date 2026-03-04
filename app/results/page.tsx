@@ -10,32 +10,62 @@ interface SessionResult {
   completed: boolean;
 }
 
+interface DatabaseStats {
+  totalSessions: number;
+  totalSeconds: number;
+  totalImages: number;
+  averageSeconds: number;
+  lastSessionAt: string | null;
+  byCategory: Array<{
+    category: string;
+    count: number;
+    totalSeconds: number;
+  }>;
+}
+
 export default function ResultsPage() {
   const router = useRouter();
   const [result, setResult] = useState<SessionResult | null>(null);
   const [stats, setStats] = useState<SessionStats | null>(null);
+  const [dbStats, setDbStats] = useState<DatabaseStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get result from sessionStorage
-    const resultStr = sessionStorage.getItem('sessionResult');
-    if (!resultStr) {
-      router.push('/');
-      return;
-    }
+    const initResults = async () => {
+      try {
+        // Get result from sessionStorage
+        const resultStr = sessionStorage.getItem('sessionResult');
+        if (!resultStr) {
+          router.push('/');
+          return;
+        }
 
-    const parsedResult: SessionResult = JSON.parse(resultStr);
-    setResult(parsedResult);
+        const parsedResult: SessionResult = JSON.parse(resultStr);
+        setResult(parsedResult);
 
-    // Update and get stats
-    const updatedStats = updateStatsAfterSession(parsedResult.totalSeconds);
-    setStats(updatedStats);
+        // Update and get local stats
+        const updatedStats = updateStatsAfterSession(parsedResult.totalSeconds);
+        setStats(updatedStats);
 
-    // Clear sessionStorage
-    sessionStorage.removeItem('sessionParams');
-    sessionStorage.removeItem('sessionResult');
+        // Fetch database stats
+        const statsRes = await fetch('/api/stats');
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setDbStats(statsData.stats);
+        }
 
-    setIsLoading(false);
+        // Clear sessionStorage
+        sessionStorage.removeItem('sessionParams');
+        sessionStorage.removeItem('sessionResult');
+
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error loading results:', err);
+        setIsLoading(false);
+      }
+    };
+
+    initResults();
   }, [router]);
 
   if (isLoading || !result || !stats) {
@@ -73,14 +103,14 @@ export default function ResultsPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 rounded-lg p-6 text-center">
               <div className="text-3xl font-bold text-blue-600 mb-2">
-                {stats.sessionsCompleted}
+                {dbStats?.totalSessions || stats?.sessionsCompleted || 0}
               </div>
               <p className="text-gray-600 text-sm">Total Sessions</p>
             </div>
             <div className="bg-green-50 rounded-lg p-6 text-center">
               <div className="text-3xl font-bold text-green-600 mb-2">
-                {Math.floor(stats.totalSecondsPracticed / 60)}m{' '}
-                {stats.totalSecondsPracticed % 60}s
+                {Math.floor((dbStats?.totalSeconds || stats?.totalSecondsPracticed || 0) / 60)}m{' '}
+                {(dbStats?.totalSeconds || stats?.totalSecondsPracticed || 0) % 60}s
               </div>
               <p className="text-gray-600 text-sm">Total Time Practiced</p>
             </div>
@@ -116,10 +146,10 @@ export default function ResultsPage() {
             <p className="text-sm text-gray-700">
               Great work! You've practiced for{' '}
               <strong>
-                {Math.floor(stats.totalSecondsPracticed / 60)} minutes and{' '}
-                {stats.totalSecondsPracticed % 60} seconds
+                {Math.floor((dbStats?.totalSeconds || stats?.totalSecondsPracticed || 0) / 60)} minutes and{' '}
+                {(dbStats?.totalSeconds || stats?.totalSecondsPracticed || 0) % 60} seconds
               </strong>{' '}
-              across <strong>{stats.sessionsCompleted} sessions</strong>. Keep it up! 💪
+              across <strong>{dbStats?.totalSessions || stats?.sessionsCompleted || 0} sessions</strong>. Keep it up! 💪
             </p>
           </div>
         </div>

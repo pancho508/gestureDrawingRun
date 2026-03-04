@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Category, SessionPreset } from '@/types';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { PresetPicker } from '@/components/PresetPicker';
@@ -64,6 +65,20 @@ export default function Home() {
           <p className="text-xl text-gray-600">
             Practice gesture drawing with timed reference images
           </p>
+        </div>
+
+        {/* Navigation Links */}
+        <div className="flex justify-center gap-4 mb-8">
+          <Link href="/stats">
+            <button className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+              📊 View Stats
+            </button>
+          </Link>
+          <Link href="/admin/login">
+            <button className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
+              ⚙️ Admin
+            </button>
+          </Link>
         </div>
 
         {/* Error Alert */}
