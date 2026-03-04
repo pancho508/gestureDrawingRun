@@ -38,20 +38,27 @@ export function SessionRunner({ queue, sessionRunId, onSessionEnd }: SessionRunn
 
   // Initialize timer
   useEffect(() => {
+    // Stop old timer
     if (timerRef.current) {
       timerRef.current.stop();
+      timerRef.current = null;
     }
 
+    // Check if session is finished
     if (index >= queue.length) {
-      // Session finished
       setStatus('finished');
       const totalSeconds = queue.reduce((sum, item) => sum + item.intervalSeconds, 0);
       onSessionEnd(totalSeconds);
       return;
     }
 
+    // Set initial remaining time immediately
+    const intervalSeconds = queue[index].intervalSeconds;
+    setRemaining(intervalSeconds);
+
+    // Create new timer
     timerRef.current = createTimer(
-      queue[index].intervalSeconds,
+      intervalSeconds,
       {
         onTick: (remaining: number) => {
           setRemaining(remaining);
@@ -72,6 +79,7 @@ export function SessionRunner({ queue, sessionRunId, onSessionEnd }: SessionRunn
     return () => {
       if (timerRef.current) {
         timerRef.current.stop();
+        timerRef.current = null;
       }
     };
   }, [index, queue, onSessionEnd]);
@@ -152,31 +160,34 @@ export function SessionRunner({ queue, sessionRunId, onSessionEnd }: SessionRunn
 
       {/* UI Overlay */}
       {!hideUi && (
-        <div className="absolute inset-0 pointer-events-none flex flex-col p-6">
-          {/* Top: Progress */}
-          <div className="text-white text-center mb-8 pointer-events-auto">
-            <div className="mb-4">
-              <div className="w-80 h-1 bg-gray-700 rounded-full overflow-hidden mx-auto">
+        <>
+          {/* Top-Right: Large Timer */}
+          <div className="absolute top-6 right-6 pointer-events-none">
+            <div className="bg-black bg-opacity-75 rounded-lg px-8 py-6 backdrop-blur-sm border border-blue-500 border-opacity-30">
+              <div className="text-6xl font-bold text-blue-400 text-center tabular-nums font-mono">
+                {String(remaining).padStart(3, '0')}
+              </div>
+              <p className="text-sm text-gray-400 text-center mt-2">seconds</p>
+            </div>
+          </div>
+
+          {/* Top: Progress Bar */}
+          <div className="absolute top-6 left-6 right-32 pointer-events-none">
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-gray-300 whitespace-nowrap">
+                {index + 1} / {queue.length}
+              </p>
+              <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-500 transition-all duration-200"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <p className="mt-2 text-sm text-gray-300">
-                {index + 1} / {queue.length}
-              </p>
-            </div>
-          </div>
-
-          {/* Center: Timer */}
-          <div className="flex-1 flex items-center justify-center pointer-events-auto">
-            <div className="text-8xl font-bold text-white text-shadow">
-              {remaining}
             </div>
           </div>
 
           {/* Bottom: Controls */}
-          <div className="pointer-events-auto flex justify-center gap-4">
+          <div className="absolute bottom-6 left-0 right-0 pointer-events-auto flex justify-center gap-4">
             <button
               onClick={handlePrevious}
               disabled={index === 0}
@@ -205,24 +216,24 @@ export function SessionRunner({ queue, sessionRunId, onSessionEnd }: SessionRunn
             </button>
           </div>
 
-          {/* UI Toggle */}
+          {/* UI Toggle Button */}
           <button
             onClick={() => setHideUi(!hideUi)}
-            className="absolute top-6 right-6 pointer-events-auto text-white text-sm hover:opacity-70"
+            className="absolute top-6 left-6 pointer-events-auto text-white text-2xl hover:opacity-70 z-50"
             title="Press H to toggle UI"
           >
             👁
           </button>
 
-          {/* Help */}
+          {/* Help Button */}
           <button
             onClick={() => setShowHelp(true)}
-            className="absolute bottom-6 right-6 pointer-events-auto text-white text-sm hover:opacity-70"
+            className="absolute bottom-6 right-6 pointer-events-auto text-white text-xl hover:opacity-70"
             title="Press ? for help"
           >
             ?
           </button>
-        </div>
+        </>
       )}
 
       {/* Help Modal */}

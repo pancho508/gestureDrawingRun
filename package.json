@@ -16,6 +16,7 @@
     "db:generate": "drizzle-kit generate:pg",
     "db:migrate": "dotenv -e .env.local -- node -r tsx/cjs scripts/migrate.ts",
     "db:seed": "dotenv -e .env.local -- node -r tsx/cjs scripts/seed.ts",
+    "db:seed:free": "dotenv -e .env.local -- node -r tsx/cjs scripts/seed-free-images.ts",
     "db:push": "drizzle-kit push:pg"
   },
   "dependencies": {
