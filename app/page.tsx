@@ -6,12 +6,12 @@ import { Category, SessionPreset } from '@/types';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { PresetPicker } from '@/components/PresetPicker';
 import { TagFilter } from '@/components/TagFilter';
-import { loadLocalPresets } from '@/lib/localData';
 
 export default function Home() {
   const router = useRouter();
   const [presets, setPresets] = useState<SessionPreset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Form state
   const [category, setCategory] = useState<Category>('figure');
@@ -20,13 +20,27 @@ export default function Home() {
   const [includeNsfw, setIncludeNsfw] = useState(false);
 
   useEffect(() => {
-    loadLocalPresets().then((loaded: SessionPreset[]) => {
-      setPresets(loaded);
-      if (loaded.length > 0) {
-        setPresetId(loaded[0].id);
+    const fetchPresets = async () => {
+      try {
+        const response = await fetch('/api/presets');
+        if (!response.ok) {
+          throw new Error('Failed to fetch presets');
+        }
+        const data: SessionPreset[] = await response.json();
+        setPresets(data);
+        if (data.length > 0) {
+          setPresetId(data[0].id);
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        setError(message);
+        console.error('Error fetching presets:', err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    };
+
+    fetchPresets();
   }, []);
 
   const handleStartSession = () => {
@@ -51,6 +65,14 @@ export default function Home() {
             Practice gesture drawing with timed reference images
           </p>
         </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-700 font-medium">⚠️ Error loading data</p>
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
 
         {/* Form */}
         {isLoading ? (

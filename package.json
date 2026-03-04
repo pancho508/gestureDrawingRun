@@ -12,10 +12,17 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:migrate": "node -r tsx/cjs scripts/migrate.ts",
+    "db:seed": "node -r tsx/cjs scripts/seed.ts",
+    "db:push": "drizzle-kit push:pg"
   },
   "dependencies": {
+    "drizzle-kit": "^0.31.9",
+    "drizzle-orm": "^0.45.1",
     "next": "16.1.6",
+    "pg": "^8.19.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "seedrandom": "^3"
