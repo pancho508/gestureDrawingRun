@@ -5,11 +5,13 @@
 > Target stack: Next.js (App Router) + TypeScript + Tailwind + Postgres (Drizzle) + S3/R2 (signed uploads)
 > MVP milestone: user can run timed sessions from a library of images; admin can upload/manage images & presets.
 >
-> NOTE: Build in phases so we ship something usable early:
-> - Phase 0: runner with local JSON dataset (no DB, no storage)
-> - Phase 1: DB-backed library + queue API (read-only)
-> - Phase 2: Admin upload + metadata CRUD
-> - Phase 3: Session persistence + stats (optional)
+> **STATUS:**
+> - Phase 0: ✅ COMPLETE - runner with local JSON dataset
+> - Phase 1: ✅ COMPLETE - DB-backed library + queue API (read-only)
+> - Phase 2: ✅ COMPLETE - Admin upload + metadata CRUD
+> - Phase 3: ✅ COMPLETE - Session persistence + stats (optional)
+>
+> All phases complete! App is production-ready for gesture drawing practice.
 
 ---
 
@@ -403,29 +405,29 @@
 ## 17. Session run persistence
 
 ### 17.1 Add tables
-- [ ] Add `session_runs` + `session_run_images`
-- [ ] Migration
+- [x] Add `session_runs` + `session_run_images`
+- [x] Migration
 
 ### 17.2 Start session endpoint (stateful)
-- [ ] `POST /api/session/start`
-- [ ] Create session_run
-- [ ] Create session_run_images with selected queue
-- [ ] Return `sessionRunId` + queue
+- [x] `POST /api/session/start`
+- [x] Create session_run
+- [x] Create session_run_images with selected queue
+- [x] Return `sessionRunId` + queue
 
 ### 17.3 Finish session endpoint
-- [ ] `POST /api/session/finish`
-- [ ] Mark completed + totals + ended_at
+- [x] `POST /api/session/finish`
+- [x] Mark completed + totals + ended_at
 
 ---
 
 ## 18. Stats endpoint (authenticated users)
 
 ### 18.1 `GET /api/stats`
-- [ ] Return totalSecondsPracticed and sessionsCompleted
-- [ ] Optionally last 7 days sessions count
+- [x] Return totalSecondsPracticed and sessionsCompleted
+- [x] Optionally last 7 days sessions count
 
 ### 18.2 Results page uses stats endpoint if logged in
-- [ ] Otherwise fallback to localStorage stats
+- [x] Otherwise fallback to localStorage stats
 
 ---
 
