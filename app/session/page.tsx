@@ -4,9 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Category, ImageQueueItem, SessionPreset } from '@/types';
 import { SessionRunner } from '@/components/SessionRunner';
-import { buildQueue } from '@/lib/imageQueue';
-import { loadLocalImages, loadLocalPresets } from '@/lib/localData';
-import { normalizeTags } from '@/lib/normalize';
 
 interface SessionParams {
   presetId: string;
@@ -34,27 +31,34 @@ export default function SessionPage() {
 
         const params: SessionParams = JSON.parse(paramsStr);
 
-        // Load presets and images
-        const presets = await loadLocalPresets();
-        const images = await loadLocalImages();
+        // Fetch presets from API
+        const presetsRes = await fetch('/api/presets');
+        if (!presetsRes.ok) {
+          throw new Error('Failed to fetch presets');
+        }
+        const presets: SessionPreset[] = await presetsRes.json();
 
-        // Find preset
-        const selectedPreset = presets.find((p: SessionPreset) => p.id === params.presetId);
+        // Find selected preset
+        const selectedPreset = presets.find((p) => p.id === params.presetId);
         if (!selectedPreset) {
           throw new Error('Preset not found');
         }
 
-        // Normalize tags
-        const normalizedTags = normalizeTags(params.tags);
-
-        // Build queue
-        const builtQueue = buildQueue({
-          images,
+        // Build query string for queue API
+        const queryParams = new URLSearchParams({
           category: params.category,
-          includeNsfw: params.includeNsfw,
-          tags: normalizedTags,
-          intervalsSeconds: selectedPreset.intervalsSeconds,
+          includeNsfw: String(params.includeNsfw),
+          tags: params.tags.join(','),
+          intervals: selectedPreset.intervalsSeconds.join(','),
         });
+
+        // Fetch queue from API
+        const queueRes = await fetch(`/api/images/queue?${queryParams.toString()}`);
+        if (!queueRes.ok) {
+          const errorData = await queueRes.json();
+          throw new Error(errorData.error || 'Failed to build queue');
+        }
+        const builtQueue: ImageQueueItem[] = await queueRes.json();
 
         setPreset(selectedPreset);
         setQueue(builtQueue);
